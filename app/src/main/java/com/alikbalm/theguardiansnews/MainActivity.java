@@ -1,10 +1,17 @@
 package com.alikbalm.theguardiansnews;
 
+import android.content.Context;
+import android.database.DatabaseErrorHandler;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ListView;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,8 +22,9 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity {
     //наш список
     ListView listView;
+    SQLiteDatabase guardiansBD;
 
-    //API ключ и сам url
+    //API ключ и сам url https://content.guardianapis.com/news?api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c
     private final static String API_KEY ="dc5fa5c7-98f1-4386-8f12-651cb412c87c";
     private final static String NEWS ="https://content.guardianapis.com/news?api-key=";
 
@@ -24,6 +32,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //инициируем базу , и создаём в ней таблицу с ячейками для наших данных
+        guardiansBD = this.openOrCreateDatabase("guardiansDB",MODE_PRIVATE,null);
+        guardiansBD.execSQL("CREATE TABLE IF NOT EXISTS 'news' (webPublicationDate VARCHAR, webTitle VARCHAR, webUrl VARCHAR, id INT PRIMARY KEY)");
 
         //наш список
         listView = (ListView)findViewById(R.id.listView);
@@ -69,7 +81,36 @@ public class MainActivity extends AppCompatActivity {
                     data = inReader.read();
 
                 }
-                Log.i("JSONFILE", jsonFileString);
+                //строка jsonFileString сформирована
+                //Log.i("JSONFILE", jsonFileString);
+
+                // извлекаем из строки данные json
+                JSONObject jsonObject = new JSONObject(jsonFileString);
+                JSONObject response = jsonObject.getJSONObject("response");
+                JSONArray results = response.getJSONArray("results");
+
+                /*
+                теперь из массива объектов results нужно извлечь у каждого объекта
+                "webPublicationDate", "webTitle", "webUrl"
+                 и добавить их в базу в таблицу news
+                 */
+
+                //это вспомогательные строки для добавления в таблицу базы записей чтоб каждый раз не копировать и не вставлять
+                String sqlExecStart = "INSERT INTO 'news' (webPublicationDate, webTitle, webUrl) VALUES (";
+                String sqlExecEnd = ")";
+                String values = "";
+
+                //проходим по элементам массива
+                for (int i = 0; i < results.length(); i++) {
+
+                    values = results.getJSONObject(i).getString("webPublicationDate") + ", "
+                      + results.getJSONObject(i).getString("webTitle") + ", "
+                      + results.getJSONObject(i).getString("webUrl");
+                    guardiansBD.execSQL(sqlExecStart + values + sqlExecEnd);
+
+                }
+                //после этого цикла в базе должны лежать все значения из объектов из массива results
+
 
 
 
@@ -89,6 +130,27 @@ public class MainActivity extends AppCompatActivity {
 
             //здесь пишем код для вставки извлечённого текста или файла в базу
 
+
+        }
+    }
+    //это пока оставим пока не научусь работать с SQLiteOpenHelper, потому как именно при помощи него можно добавить значения из базы в список в активности
+    class guardiansDBHelper extends SQLiteOpenHelper {
+
+        public guardiansDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version) {
+            super(context, name, factory, version);
+        }
+
+        public guardiansDBHelper(Context context, String name, SQLiteDatabase.CursorFactory factory, int version, DatabaseErrorHandler errorHandler) {
+            super(context, name, factory, version, errorHandler);
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase sqLiteDatabase) {
+
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
 
         }
     }
