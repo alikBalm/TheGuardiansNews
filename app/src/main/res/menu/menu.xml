@@ -3,6 +3,13 @@
     <item
         android:title="News"
         android:id="@+id/news" ></item>
+    <item
+        android:title="Android"
+        android:id="@+id/android" ></item>
+
+    <item
+        android:title="Linux"
+        android:id="@+id/linux" ></item>
 
     <item
         android:title="Football"

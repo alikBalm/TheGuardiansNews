@@ -1,23 +1,16 @@
 package com.alikbalm.theguardiansnews;
 
-import android.content.Context;
 import android.content.Intent;
-import android.database.DatabaseErrorHandler;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -29,11 +22,20 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+/*
+
+Для добавления новых тегов в меню нужно
+ во первых в файле strings.xml прописать сам тег ,
+ во вторых в menu.xml прописать item для этого тега,
+ в третьих в главной активности в методе onOptionsItemSelected добавить случай для выбора данного пункта из меню.
+ Вуаля!!!
+ */
+
 
 public class MainActivity extends AppCompatActivity {
     //наш список
     ListView listView;
-    Button refreshNews;
+
 
     List<News> newsList;
     ArrayList<String> newsTitle;
@@ -69,6 +71,12 @@ public class MainActivity extends AppCompatActivity {
             case R.id.news:
                 new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.news) + API_KEY);
                 return true;
+            case R.id.android:
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.android) + API_KEY);
+                return true;
+            case R.id.linux:
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.linux) + API_KEY);
+                return true;
             case R.id.football:
                 new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.football) + API_KEY);
                 return true;
@@ -97,17 +105,7 @@ public class MainActivity extends AppCompatActivity {
 
         //наш список
         listView = (ListView)findViewById(R.id.listView);
-        //кнопка для обновления
-        refreshNews = (Button)findViewById(R.id.refreshNews);
 
-        refreshNews.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //здесь пишем код для обновления новостей по нажатию на Renew News
-                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.news) + API_KEY);
-
-            }
-        });
 
         //делаем проверку на уже существующую базу
         newsList = News.listAll(News.class);

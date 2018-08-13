@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">TheGuardiansNews</string>
     <string name="news">news?</string>
+    <string name="android">search?q=Android&amp;</string>
+    <string name="linux">search?q=Linux&amp;</string>
     <string name="football">search?q=football&amp;</string>
     <string name="russia">search?q=Russia&amp;</string>
 </resources>
