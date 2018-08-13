@@ -8,6 +8,9 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -17,12 +20,18 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
     //наш список
     ListView listView;
-    SQLiteDatabase guardiansBD;
+    Button refreshNews;
+
+    List<News> newsList;
+    ArrayList<String> newsTitle;
+    //SQLiteDatabase guardiansBD;
 
     //API ключ и сам url https://content.guardianapis.com/news?api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c
     private final static String API_KEY ="dc5fa5c7-98f1-4386-8f12-651cb412c87c";
@@ -33,12 +42,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        /*
+
         //инициируем базу , и создаём в ней таблицу с ячейками для наших данных
         guardiansBD = this.openOrCreateDatabase("guardiansDB",MODE_PRIVATE,null);
         guardiansBD.execSQL("CREATE TABLE IF NOT EXISTS 'news' (webPublicationDate VARCHAR, webTitle VARCHAR, webUrl VARCHAR, id INT PRIMARY KEY)");
 
+        */
+
         //наш список
         listView = (ListView)findViewById(R.id.listView);
+        //кнопка для обновления
+        refreshNews = (Button)findViewById(R.id.refreshNews);
+
+        refreshNews.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //здесь пишем код для обновления новостей по нажатию на Renew News
+
+            }
+        });
+
+        new GetJSONFile().execute(NEWS + API_KEY);
+
+
+
+
 
 
 
@@ -95,10 +124,13 @@ public class MainActivity extends AppCompatActivity {
                  и добавить их в базу в таблицу news
                  */
 
+                /*
+
                 //это вспомогательные строки для добавления в таблицу базы записей чтоб каждый раз не копировать и не вставлять
                 String sqlExecStart = "INSERT INTO 'news' (webPublicationDate, webTitle, webUrl) VALUES (";
                 String sqlExecEnd = ")";
                 String values = "";
+
 
                 //проходим по элементам массива
                 for (int i = 0; i < results.length(); i++) {
@@ -106,10 +138,26 @@ public class MainActivity extends AppCompatActivity {
                     values = results.getJSONObject(i).getString("webPublicationDate") + ", "
                       + results.getJSONObject(i).getString("webTitle") + ", "
                       + results.getJSONObject(i).getString("webUrl");
-                    guardiansBD.execSQL(sqlExecStart + values + sqlExecEnd);
+                    //guardiansBD.execSQL(sqlExecStart + values + sqlExecEnd);
 
                 }
+                */
                 //после этого цикла в базе должны лежать все значения из объектов из массива results
+                //здесь нужно переделать на использование SugarOrm
+
+                //сначала чистим всю базу от старых новостей
+
+                News.deleteAll(News.class);
+
+                //вставляем в базу все новости из полученного файла JSON
+                for (int i = 0; i < results.length(); i++) {
+
+                    new News(results.getJSONObject(i).getString("webPublicationDate"),
+                             results.getJSONObject(i).getString("webTitle"),
+                             results.getJSONObject(i).getString("webUrl")).save();
+                }
+
+
 
 
 
@@ -128,11 +176,22 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
 
-            //здесь пишем код для вставки извлечённого текста или файла в базу
+            //достаём из базы все новости и помещаем их в список для listView
+            newsList = News.listAll(News.class);
+            newsTitle = new ArrayList<>();
+            for (News news :
+                    newsList) {
+                newsTitle.add(news.webTitle);
+            }
+
+            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,newsTitle);
+
+            listView.setAdapter(arrayAdapter);
 
 
         }
     }
+    /*
     //это пока оставим пока не научусь работать с SQLiteOpenHelper, потому как именно при помощи него можно добавить значения из базы в список в активности
     class guardiansDBHelper extends SQLiteOpenHelper {
 
@@ -154,4 +213,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
+
+    */
 }
