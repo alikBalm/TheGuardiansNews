@@ -9,6 +9,9 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -37,8 +40,45 @@ public class MainActivity extends AppCompatActivity {
     //SQLiteDatabase guardiansBD;
 
     //API ключ и сам url https://content.guardianapis.com/news?api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c
-    private final static String API_KEY ="dc5fa5c7-98f1-4386-8f12-651cb412c87c";
-    private final static String NEWS ="https://content.guardianapis.com/news?api-key=";
+    //                   https://content.guardianapis.com/search?q=football&api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c  для замены на меню с выбором
+    //                   https://content.guardianapis.com/search?q=Russia&api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c    тэгов новостей, или тем статей в The Guardians
+    private final static String API_KEY ="api-key=dc5fa5c7-98f1-4386-8f12-651cb412c87c";
+    private final static String START_QUERY ="https://content.guardianapis.com/";
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+
+        //подключаем само меню
+
+        MenuInflater menuInflater = getMenuInflater();
+
+        menuInflater.inflate(R.menu.menu, menu);
+
+
+
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //return super.onOptionsItemSelected(item);
+
+        //здесь пишем код для обновления списка статей и базы
+
+        switch (item.getItemId()) {
+            case R.id.news:
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.news) + API_KEY);
+                return true;
+            case R.id.football:
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.football) + API_KEY);
+                return true;
+            case R.id.russia:
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.russia) + API_KEY);
+                return true;
+            default:
+                return false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //здесь пишем код для обновления новостей по нажатию на Renew News
-                new GetJSONFile().execute(NEWS + API_KEY);
+                new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.news) + API_KEY);
 
             }
         });
@@ -72,9 +112,9 @@ public class MainActivity extends AppCompatActivity {
         //делаем проверку на уже существующую базу
         newsList = News.listAll(News.class);
 
-        if (newsList.size()<0 || newsList == null) {
+        if (newsList.size()<1 || newsList == null) {
 
-            new GetJSONFile().execute(NEWS + API_KEY);
+            new GetJSONFile().execute(START_QUERY + getResources().getString(R.string.news) + API_KEY);
 
         } else {
 

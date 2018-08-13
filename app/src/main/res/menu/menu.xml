@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:title="News"
+        android:id="@+id/news" ></item>
+
+    <item
+        android:title="Football"
+        android:id="@+id/football" ></item>
+
+    <item
+        android:title="Russia"
+        android:id="@+id/russia" ></item>
+
+</menu>
