@@ -1,6 +1,7 @@
 package com.alikbalm.theguardiansnews;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.DatabaseErrorHandler;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -9,9 +10,11 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         */
 
+
+
         //наш список
         listView = (ListView)findViewById(R.id.listView);
         //кнопка для обновления
@@ -59,11 +64,37 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //здесь пишем код для обновления новостей по нажатию на Renew News
+                new GetJSONFile().execute(NEWS + API_KEY);
 
             }
         });
 
-        new GetJSONFile().execute(NEWS + API_KEY);
+        //делаем проверку на уже существующую базу
+        newsList = News.listAll(News.class);
+
+        if (newsList.size()<0 || newsList == null) {
+
+            new GetJSONFile().execute(NEWS + API_KEY);
+
+        } else {
+
+            fillTheListView();
+
+        }
+
+
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
+                //Toast.makeText(MainActivity.this, newsTitle.get(i), Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(getApplicationContext(),OpenNewsUrl.class);
+                intent.putExtra("url",newsList.get(i).webUrl);// здесь нужно достать webUrl из базы или newsList
+                startActivity(intent);
+
+            }
+        });
 
 
 
@@ -81,6 +112,18 @@ public class MainActivity extends AppCompatActivity {
         getJSONFile.execute(NEWS + API_KEY);
         //!-->блок для проверки 1*/
 
+    }
+
+    private void fillTheListView(){
+        newsTitle = new ArrayList<>();
+        for (News news :
+                newsList) {
+            newsTitle.add(news.webPublicationDate.substring(0,10)+" "+news.webPublicationDate.substring(11,16)+" "+news.webTitle);
+        }
+
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,newsTitle);
+
+        listView.setAdapter(arrayAdapter);
     }
 
     //класс для извлечения объектов из json файла из url, и добавления записей в базу
@@ -177,16 +220,12 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(result);
 
             //достаём из базы все новости и помещаем их в список для listView
+            //2018-08-13T11:00:37Z
+            //01234567890123456789
+            //          1
             newsList = News.listAll(News.class);
-            newsTitle = new ArrayList<>();
-            for (News news :
-                    newsList) {
-                newsTitle.add(news.webTitle);
-            }
+            fillTheListView();
 
-            ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(MainActivity.this,android.R.layout.simple_list_item_1,newsTitle);
-
-            listView.setAdapter(arrayAdapter);
 
 
         }
